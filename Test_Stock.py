@@ -24,7 +24,9 @@ stock_list = ['2330', '2317', '2412']  # 台積電、鴻海、中華電等
 def get_last_3_years_month_starts():
     today = datetime.today()
     dates = []
+    #今年、去年、大去年
     for y in range(today.year - 2, today.year + 1):
+        #1月~
         for m in range(1, 13):
             if y == today.year and m > today.month:
                 break
@@ -46,7 +48,6 @@ for stock_no in stock_list:
                     with pyodbc.connect(connection_string) as conn:
                         cursor = conn.cursor()
                         for row in rows:
-                            
                             full_title = data.get("title", "")
                             # 用 split + strip 擷取
                             stock_info = full_title.split(" ", 2)[1].strip() if " " in full_title else ""
