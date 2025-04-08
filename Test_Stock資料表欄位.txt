@@ -1,0 +1,14 @@
+CREATE TABLE TWSE_Stock_Data (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(), -- 主鍵(亂數產生)
+    date NVARCHAR(20),       -- 日期
+    volume BIGINT,           -- 成交股數
+    turnover BIGINT,         -- 成交金額
+    open_price FLOAT,        -- 開盤價
+    high FLOAT,              -- 最高價
+    low FLOAT,               -- 最低價
+    close_price FLOAT,       -- 收盤價
+    change NVARCHAR(20),     -- 漲跌價差（有時是文字箭頭）
+    trades INT,              -- 成交筆數
+    stock_no INT,            -- 股票代碼
+    stock_name NVARCHAR(50)  -- 股票名稱
+);

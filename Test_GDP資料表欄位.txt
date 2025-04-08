@@ -1,0 +1,12 @@
+CREATE TABLE Test_GDP (
+    Number NVARCHAR(100),
+	Country NVARCHAR(100), --國家
+	Forecast NVARCHAR(100), --預測
+	Forecast_Year NVARCHAR(100),　--預測年度
+	
+	World_Bank_Estimate NVARCHAR(100), --世界銀行估計金額
+	World_Bank_Year NVARCHAR(100), --世界銀行估計年度
+
+	United_Nations_Estimate NVARCHAR(100), --聯合國估計金額
+	United_Nations_Year NVARCHAR(100),--聯合國估計年度
+);
