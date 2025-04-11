@@ -3,6 +3,11 @@ import json
 import pyodbc
 from datetime import datetime, timedelta
 import calendar
+import requests
+import csv
+from io import StringIO
+
+import twstock #股票套件
 
 # 資料庫連線設定
 server = 'localhost'
@@ -17,8 +22,25 @@ connection_string = f'''
     PWD={password};
 '''
 
-# 設定股票代碼（可多個）
-stock_list = ['2330', '2317', '2412']  # 台積電、鴻海、中華電等
+#獲得所有股票代碼
+csv_url = 'https://www.twse.com.tw/exchangeReport/MI_INDEX?response=csv&date=20240410&type=ALL'
+
+response = requests.get(csv_url)
+response.encoding = 'utf-8'
+
+valid_stock_list = []
+
+if response.status_code == 200:
+    raw = response.text
+    # 處理資料列
+    csv_data = csv.reader(StringIO(raw))
+    for row in csv_data:
+        if len(row) > 1 and row[0].isdigit():  # 股票代碼為數字
+            stock_no = row[0].strip()
+            valid_stock_list.append(stock_no)
+
+print(valid_stock_list)
+print(f"共抓到 {len(valid_stock_list)} 支有效股票代碼")
 
 # 計算過去三年的每個月份起始日（TWSE 要求格式 YYYYMMDD）
 def get_last_3_years_month_starts():
@@ -34,7 +56,21 @@ def get_last_3_years_month_starts():
     return dates
 
 # 開始抓資料
-for stock_no in stock_list:
+for stock_no in valid_stock_list:
+    test_date = datetime.today().strftime('%Y%m01')
+    test_url = f'https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date={test_date}&stockNo={stock_no}'
+    test_response = requests.get(test_url)
+    test_response.encoding = 'utf-8'
+
+    if test_response.status_code != 200:
+        print(f"{stock_no}：無法連接網站，跳過")
+        continue
+
+    test_data = test_response.json()
+    if test_data.get('stat') != 'OK':
+        print(f"{stock_no}：查詢失敗（無資料或非上市公司），跳過")
+        continue
+
     for date in get_last_3_years_month_starts():
         url = f'https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date={date}&stockNo={stock_no}'
         response = requests.get(url)
@@ -50,7 +86,9 @@ for stock_no in stock_list:
                         for row in rows:
                             full_title = data.get("title", "")
                             # 用 split + strip 擷取
-                            stock_info = full_title.split(" ", 2)[1].strip() if " " in full_title else ""
+                            import re
+                            match = re.search(r"\d{4}\s+[\u4e00-\u9fa5]+", full_title)
+                            stock_info = match.group().strip() if match else ""
 
                             # 清理數字字串中的逗號
                             cleaned_row = [
